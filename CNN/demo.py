@@ -31,7 +31,7 @@ class CalculoryConfig(Config):
     IMAGES_PER_GPU = 1
  
     # все классы продуктов + бэграунд
-    NUM_CLASSES = 100+1
+    NUM_CLASSES = 5+1
    
     # Кол-во шагов за эпоху
     STEPS_PER_EPOCH = 131
@@ -51,10 +51,10 @@ class CalculoryDataset(Dataset):
         
         # Все классы, которые будут использованы в обучении
         self.add_class("dataset", 1, "rise")
-        #self.add_class("dataset", 2, "eels on rice")
-        #self.add_class("dataset", 3, "pilaf")
-        #self.add_class("dataset", 4, "chicken-'n'-egg on rice")
-       # self.add_class("dataset", 5, "pork cutlet on rice")
+        self.add_class("dataset", 2, "eels on rice")
+        self.add_class("dataset", 3, "pilaf")
+        self.add_class("dataset", 4, "chicken-'n'-egg on rice")
+        self.add_class("dataset", 5, "pork cutlet on rice")
 
         counter_class=1
         # define data locations for images and annotations
