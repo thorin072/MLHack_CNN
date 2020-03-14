@@ -153,7 +153,7 @@ print("Loading Mask R-CNN model...")
 model = modellib.MaskRCNN(mode="training", config=config, model_dir='./')
 
 #load the weights for COCO
-model.load_weights('.\\Mask_RCNN\\mask_rcnn_coco.h5', 
+model.load_weights(os.path.abspath(os.curdir)+'//mask_rcnn_coco.h5', 
                    by_name=True, 
                    exclude=["mrcnn_class_logits", "mrcnn_bbox_fc",  "mrcnn_bbox", "mrcnn_mask"])
 
