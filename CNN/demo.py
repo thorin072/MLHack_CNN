@@ -20,7 +20,9 @@ from keras.models import load_model
 import time
 from os import listdir
 from xml.etree import ElementTree
-
+from keras.preprocessing import image
+# example of loading an image with the Keras API
+from tensorflow.python.keras.preprocessing.image import load_img, img_to_array
 
 # Класс описания конфигурации сетки
 class CalculoryConfig(Config):
@@ -31,10 +33,10 @@ class CalculoryConfig(Config):
     IMAGES_PER_GPU = 1
  
     # все классы продуктов + бэграунд
-    NUM_CLASSES = 5+1
+    NUM_CLASSES = 30+1
    
     # Кол-во шагов за эпоху
-    STEPS_PER_EPOCH = 131
+    STEPS_PER_EPOCH = 50
     
     # Скорость обучения
     LEARNING_RATE=0.006
@@ -55,28 +57,84 @@ class CalculoryDataset(Dataset):
         self.add_class("dataset", 3, "pilaf")
         self.add_class("dataset", 4, "chicken-'n'-egg on rice")
         self.add_class("dataset", 5, "pork cutlet on rice")
+        self.add_class("dataset", 6, "beef curry")
+        self.add_class("dataset", 7, "sushi")
+        self.add_class("dataset", 8, "chicken rice")
+        self.add_class("dataset", 9, "fried rice")
+        self.add_class("dataset", 10, "tempura bowl")
+        self.add_class("dataset", 11, "bibimbap")
+        self.add_class("dataset", 12, "toast")
+        self.add_class("dataset", 13, "croissant")
+        self.add_class("dataset", 14, "roll bread")
+        self.add_class("dataset", 15, "raisin bread")
+        self.add_class("dataset", 16, "chip butty")
+        self.add_class("dataset", 17, "hamburger")
+        self.add_class("dataset", 18, "pizza")
+        self.add_class("dataset", 19, "sandwiches")
+        self.add_class("dataset", 20, "udon noodle")
+        self.add_class("dataset", 21, "tempura udon")
+        self.add_class("dataset", 22, "soba noodle")
+        self.add_class("dataset", 23, "ramen noodle")
+        self.add_class("dataset", 24, "beef noodle")
 
-        counter_class=1
-        # define data locations for images and annotations
-        images_dir = dataset_dir +'\\'+str(counter_class)+'\\'
-        annotations_dir = dataset_dir +'\\'+str(counter_class)+'\\xml'+'\\'
-        
-        # Iterate through all files in the folder to 
-        #add class, images and annotaions
-        for filename in listdir(images_dir):
+        self.add_class("dataset", 95, "pizza toast")
+        self.add_class("dataset", 96, "dipping noodles")
+        self.add_class("dataset", 97, "hot dog")
+        self.add_class("dataset", 98, "french fries")
+        self.add_class("dataset", 99, "mixed rice")
+        self.add_class("dataset", 100, "goya chanpuru")
+
           
-            # extract image id
-            image_id = filename[:-4]
+        for i in range(1,24):
+            # define data locations for images and annotations
+            images_dir = dataset_dir +'\\'+str(i)+'\\'
+            annotations_dir = dataset_dir +'\\'+str(i)+'\\xml'+'\\'
+        
+            # Iterate through all files in the folder to 
+            #add class, images and annotaions
+            for filename in listdir(images_dir):
+          
+                # extract image id
+                image_id = filename[:-4]
             
-            # setting image file
-            img_path = images_dir + filename
+                # setting image file
+                img_path = images_dir + filename
             
-            # setting annotations file
-            ann_path = annotations_dir + image_id + '.xml'
-            
-            # adding images and annotations to dataset
-            self.add_image('dataset', image_id=image_id, path=img_path, annotation=ann_path,)
+                # setting annotations file
+                ann_path = annotations_dir + image_id + '.xml'
+                if i==1:
+                    name_class='rise'
+                if i==2:
+                    name_class='eels on rice'
 
+            
+                
+                # adding images and annotations to dataset
+                self.add_image('dataset', image_id=image_id, path=img_path, annotation=ann_path,class_ids=name_class)
+        for i in range(95,100):
+            # define data locations for images and annotations
+            images_dir = dataset_dir +'\\'+str(i)+'\\'
+            annotations_dir = dataset_dir +'\\'+str(i)+'\\xml'+'\\'
+        
+            # Iterate through all files in the folder to 
+            #add class, images and annotaions
+            for filename in listdir(images_dir):
+          
+                # extract image id
+                image_id = filename[:-4]
+            
+                # setting image file
+                img_path = images_dir + filename
+            
+                # setting annotations file
+                ann_path = annotations_dir + image_id + '.xml'
+                if i==95:
+                    name_class='pizza toast'
+                if i==96:
+                    name_class='dipping noodles'
+            
+                # adding images and annotations to dataset
+                self.add_image('dataset', image_id=image_id, path=img_path, annotation=ann_path,class_ids=name_class)
 
 # extract bounding boxes from an annotation file
     def extract_boxes(self, filename):
@@ -112,7 +170,7 @@ class CalculoryDataset(Dataset):
         
         # define anntation  file location
         path = info['annotation']
-        
+        name_class=info['class_ids']
         # load XML
         boxes, w, h = self.extract_boxes(path)
        
@@ -126,7 +184,7 @@ class CalculoryDataset(Dataset):
             row_s, row_e = box[1], box[3]
             col_s, col_e = box[0], box[2]
             masks[row_s:row_e, col_s:col_e, i] = 1
-            class_ids.append(self.class_names.index('rise'))
+            class_ids.append(self.class_names.index(name_class))
         return masks, asarray(class_ids, dtype='int32')
 # load an image reference"""Return the path of the image."""
     def image_reference(self, image_id):
@@ -149,7 +207,15 @@ test_set.load_dataset(os.path.abspath(os.curdir)+'\\DATAEAT', is_train=False)
 test_set.prepare()
 print('Test: %d' % len(test_set.image_ids))
 
-print("Loading Mask R-CNN model...")
+image_ids = np.random.choice(train_set.image_ids, 1)
+for image_id in image_ids:
+    image = train_set.load_image(image_id)
+    mask, class_ids = train_set.load_mask(image_id)
+    visualize.display_top_masks(image, mask, class_ids, train_set.class_names)
+
+
+
+#print("Loading Mask R-CNN model...")
 model = modellib.MaskRCNN(mode="training", config=config, model_dir='./')
 
 #load the weights for COCO
@@ -158,9 +224,15 @@ model.load_weights(os.path.abspath(os.curdir)+'//mask_rcnn_coco.h5',
                    exclude=["mrcnn_class_logits", "mrcnn_bbox_fc",  "mrcnn_bbox", "mrcnn_mask"])
 
 ## train heads with higher lr to speedup the learning
-model.train(train_set, test_set, learning_rate=2*config.LEARNING_RATE, epochs=5, layers='heads')
+model.train(train_set, test_set, learning_rate=2*config.LEARNING_RATE, epochs=2, layers='heads')
 history = model.keras_model.history.history
 
 
 model_path = os.path.abspath(os.curdir)+'\\mask_rcnn_'+ '.' + str(time.time()) + '.h5'
 model.keras_model.save_weights(model_path)
+
+print('DONE!')
+
+
+
+
